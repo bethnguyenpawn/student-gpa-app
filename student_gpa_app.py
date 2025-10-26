@@ -32,17 +32,18 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-# ===== Header with Logo and Author Info =====
+# ===== Header with Local Logo and Author Info =====
+from pathlib import Path
+logo_path = Path("Tampere_University_logo.png")  # Logo nằm cùng folder với app.py
+st.image(str(logo_path), width=120)
+
 st.markdown(
     """
-    <div style="display:flex; align-items:center; margin-bottom:20px;">
-        <img src="https://upload.wikimedia.org/wikipedia/en/8/82/Tampere_University_logo.svg" width="120">
-        <div style="margin-left:20px;">
-            <h1 style="margin-bottom:5px;">Student GPA Prediction App 🎓</h1>
-            <p style="margin:0; font-size:14px; color:#555;">
-                Author: Nguyễn Ngọc Minh Anh | Tampere University | Major: Machine Learning
-            </p>
-        </div>
+    <div style="display:inline-block; margin-left:20px;">
+        <h1 style="margin-bottom:5px; display:inline-block;">Student GPA Prediction App 🎓</h1>
+        <p style="margin:0; font-size:14px; color:#555;">
+            Author: Nguyễn Ngọc Minh Anh | Tampere University | Major: Machine Learning
+        </p>
     </div>
     <hr>
     """, unsafe_allow_html=True
@@ -121,4 +122,5 @@ st.pyplot(fig)
 # ===== Show Raw Dataset =====
 with st.expander("Show Raw Dataset"):
     st.dataframe(data)
+
 
