@@ -120,7 +120,16 @@ with tabs[2]:
         label = column_labels.get(col,col)
         input_data[col] = st.number_input(label, value=float(X[col].mean()))
 
+# ===== Convert input_data to DataFrame & fix missing columns =====
 input_df = pd.DataFrame([input_data])
+
+# Ensure all columns exist as in training data
+for col in X.columns:
+    if col not in input_df.columns:
+        input_df[col] = 0
+
+# Arrange columns in same order as X_train
+input_df = input_df[X.columns]
 
 # ===== Train Model =====
 X_train, X_test, y_train, y_test = train_test_split(
@@ -159,4 +168,5 @@ st.plotly_chart(fig, use_container_width=True)
 # ===== Show Raw Dataset =====
 with st.expander("Show Raw Dataset"):
     st.dataframe(data)
+
 
