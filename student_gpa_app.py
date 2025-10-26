@@ -6,82 +6,134 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
 
-# ===== Streamlit Page Config =====
-st.set_page_config(
-    page_title="Student GPA Prediction",
-    page_icon="🎓",
-    layout="wide",
-    initial_sidebar_state="expanded"
+===== PAGE SETUP =====
+
+st.set_page_config(page_title="🎓 Student GPA Predictor", page_icon="📊", layout="wide")
+
+===== CUSTOM STYLES =====
+
+st.markdown("""
+<style>
+body {
+background-color: #f9f9f9;
+}
+.main-title {
+text-align: center;
+color: #003DA5;
+font-size: 40px;
+font-weight: bold;
+margin-bottom: 0px;
+}
+.subtitle {
+text-align: center;
+font-size: 18px;
+color: #555;
+margin-top: 0px;
+margin-bottom: 20px;
+}
+.section-header {
+color: #003DA5;
+font-size: 22px;
+font-weight: 600;
+margin-top: 30px;
+}
+.footer {
+text-align: center;
+color: #777;
+font-size: 14px;
+margin-top: 50px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+===== HEADER =====
+
+st.image(
+"https://www.tuni.fi/themes/custom/tuni/logo.svg
+",
+width=200
 )
 
-# ===== Sidebar =====
-st.sidebar.header("About this App")
-st.sidebar.write("Author: Nguyễn Ngọc Minh Anh")
-st.sidebar.write("University: Tampere University")
-st.sidebar.write("Major: Machine Learning")
-st.sidebar.write("GitHub: [student-gpa-app](https://github.com/bethnguyenpawn/student-gpa-app)")
-st.sidebar.write("---")
+st.markdown('<p class="main-title">🎓 Student GPA Predictor</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">A Machine Learning App by Nguyễn Ngọc Minh Anh – Tampere University</p>', unsafe_allow_html=True)
+st.markdown("---")
 
-# ===== Header =====
-st.title("🎓 Student GPA Prediction App")
-st.markdown("""
-This app predicts a student's final grade (G3) based on various features like study time, number of past failures, and other personal attributes.
-""")
-st.write("---")
+===== LOAD DATA =====
 
-# ===== Load CSV =====
 data = pd.read_csv('student-mat.csv', sep=';')
 
-# ===== Preprocessing =====
+===== PREPROCESS =====
+
 data = pd.get_dummies(data, drop_first=True)
 X = data.drop("G3", axis=1)
 y = data["G3"]
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
-)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# ===== Train model =====
+===== TRAIN MODEL =====
+
 rf = RandomForestRegressor(n_estimators=100, random_state=42)
 rf.fit(X_train, y_train)
 y_pred = rf.predict(X_test)
 
-# ===== Evaluate =====
-rmse = np.sqrt(mean_squared_error(y_test, y_pred))  # sửa lỗi squared
+===== METRICS =====
+
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 r2 = r2_score(y_test, y_pred)
 
-st.subheader("Model Evaluation")
-st.info(f"**RMSE:** {rmse:.2f} | **R²:** {r2:.2f}")
+col1, col2 = st.columns(2)
+with col1:
+st.metric(label="Root Mean Squared Error (RMSE)", value=f"{rmse:.2f}")
+with col2:
+st.metric(label="R² Score", value=f"{r2:.2f}")
 
-# ===== User Input =====
-st.subheader("Predict Your GPA")
-st.markdown("Enter student data below to predict the final grade (G3):")
+===== USER INPUT =====
 
+st.markdown('<p class="section-header">📋 Enter Student Data</p>', unsafe_allow_html=True)
+selected_features = ["G1", "G2", "studytime", "failures", "absences", "age", "Medu", "Fedu"]
 input_data = {}
-cols1, cols2 = st.columns(2)  # Chia 2 cột cho đẹp
-for i, col in enumerate(X.columns):
-    if i % 2 == 0:
-        input_data[col] = cols1.number_input(col, value=float(X[col].mean()))
-    else:
-        input_data[col] = cols2.number_input(col, value=float(X[col].mean()))
+
+col1, col2 = st.columns(2)
+for i, col in enumerate(selected_features):
+if i % 2 == 0:
+with col1:
+input_data[col] = st.number_input(f"{col}", value=float(X[col].mean()))
+else:
+with col2:
+input_data[col] = st.number_input(f"{col}", value=float(X[col].mean()))
+
+Fill missing columns with mean values
+
+for col in X.columns:
+if col not in selected_features:
+input_data[col] = float(X[col].mean())
 
 input_df = pd.DataFrame([input_data])
 prediction = rf.predict(input_df)[0]
-st.success(f"Predicted GPA (G3): {prediction:.2f}")
+gpa_4scale = (prediction / 20) * 4
 
-# ===== Feature Importance =====
-st.subheader("Feature Importance")
+st.success(f"🎯 Predicted Final Grade: {prediction:.2f}/20 (≈ {gpa_4scale:.2f}/4.0 GPA)")
+
+===== FEATURE IMPORTANCE =====
+
+st.markdown('<p class="section-header">📈 Feature Importance</p>', unsafe_allow_html=True)
 importances = rf.feature_importances_
 indices = np.argsort(importances)[::-1]
 
-fig, ax = plt.subplots(figsize=(12,6))
-ax.bar(range(X.shape[1]), importances[indices], align="center", color="skyblue")
-ax.set_xticks(range(X.shape[1]))
-ax.set_xticklabels(X.columns[indices], rotation=90, fontsize=10)
+fig, ax = plt.subplots(figsize=(10,5))
+ax.bar(range(len(indices)), importances[indices], color="#003DA5", alpha=0.8)
+ax.set_xticks(range(len(indices)))
+ax.set_xticklabels(X.columns[indices], rotation=90)
 ax.set_ylabel("Importance", fontsize=12)
-ax.set_title("Random Forest Feature Importance", fontsize=14)
+ax.set_title("Top Factors Influencing Final GPA", fontsize=14, color="#003DA5")
 st.pyplot(fig)
 
-# ===== Footer =====
-st.markdown("---")
-st.markdown("© 2025 Nguyễn Ngọc Minh Anh | Tampere University | Machine Learning Major")
+===== FOOTER =====
 
+st.markdown("""
+<div class="footer">
+<hr>
+<p><strong>Author:</strong> Nguyễn Ngọc Minh Anh</p>
+<p>Tampere University – Machine Learning Major</p>
+<p>Dataset: <a href="https://archive.ics.uci.edu/ml/datasets/student+performance" target="_blank">UCI Student Performance Dataset</a></p>
+</div>
+""", unsafe_allow_html=True)
