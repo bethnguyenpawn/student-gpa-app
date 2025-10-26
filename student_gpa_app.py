@@ -78,6 +78,35 @@ data = pd.get_dummies(data, drop_first=True)
 X = data.drop("G3", axis=1)
 y = data["G3"]
 
+# ===== Mapping Column Names to User-Friendly Labels =====
+column_labels = {
+    "school_MS": "School: MS",
+    "sex_M": "Gender: Male",
+    "age": "Age",
+    "Medu": "Mother's Education",
+    "Fedu": "Father's Education",
+    "traveltime": "Travel Time to School",
+    "studytime": "Weekly Study Time",
+    "failures": "Past Failures",
+    "schoolsup_yes": "Extra Educational Support",
+    "famsup_yes": "Family Educational Support",
+    "paid_yes": "Extra Paid Classes",
+    "activities_yes": "Extracurricular Activities",
+    "nursery_yes": "Attended Nursery",
+    "higher_yes": "Wants Higher Education",
+    "internet_yes": "Has Internet Access",
+    "romantic_yes": "Has Romantic Relationship",
+    "famrel": "Family Relationship Quality",
+    "freetime": "Free Time",
+    "goout": "Going Out Frequency",
+    "Dalc": "Workday Alcohol Consumption",
+    "Walc": "Weekend Alcohol Consumption",
+    "health": "Current Health Status",
+    "absences": "School Absences",
+    "G1": "Grade 1",
+    "G2": "Grade 2"
+}
+
 # ===== Sidebar for Model Params & Input =====
 st.sidebar.header("Model Parameters")
 test_size = st.sidebar.slider("Test size (%)", 10, 50, 20)
@@ -87,13 +116,14 @@ st.sidebar.header("Student Input Data")
 input_data = {}
 cols = st.sidebar.columns(2)
 for i, col_name in enumerate(X.columns):
+    label = column_labels.get(col_name, col_name)
     if X[col_name].nunique() <= 20:
         input_data[col_name] = cols[i % 2].slider(
-            col_name, int(X[col_name].min()), int(X[col_name].max()), int(X[col_name].mean())
+            label, int(X[col_name].min()), int(X[col_name].max()), int(X[col_name].mean())
         )
     else:
         input_data[col_name] = cols[i % 2].number_input(
-            col_name, value=float(X[col_name].mean())
+            label, value=float(X[col_name].mean())
         )
 
 input_df = pd.DataFrame([input_data])
@@ -117,7 +147,6 @@ predict_btn = st.button("🎯 Predict GPA")
 if predict_btn:
     prediction = rf.predict(input_df)[0]
 
-    # Metrics in container
     with st.container():
         st.markdown(f'<div class="input-container">', unsafe_allow_html=True)
         st.success(f"Predicted GPA (G3): {prediction:.2f}")
