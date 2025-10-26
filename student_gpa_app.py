@@ -6,56 +6,66 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
 
-===== PAGE SETUP =====
+===== PAGE CONFIG =====
 
 st.set_page_config(page_title="🎓 Student GPA Predictor", page_icon="📊", layout="wide")
 
-===== CUSTOM STYLES =====
+===== CUSTOM CSS =====
 
 st.markdown("""
 <style>
 body {
-background-color: #f9f9f9;
+background: linear-gradient(135deg, #f5f9ff 0%, #e8f0ff 100%);
+font-family: 'Inter', sans-serif;
 }
 .main-title {
 text-align: center;
 color: #003DA5;
-font-size: 40px;
-font-weight: bold;
-margin-bottom: 0px;
+font-size: 46px;
+font-weight: 800;
+margin-bottom: 0;
 }
 .subtitle {
 text-align: center;
+color: #444;
 font-size: 18px;
-color: #555;
-margin-top: 0px;
-margin-bottom: 20px;
+margin-top: 5px;
+margin-bottom: 25px;
 }
-.section-header {
+.section-title {
 color: #003DA5;
 font-size: 22px;
-font-weight: 600;
-margin-top: 30px;
+font-weight: 700;
+margin-top: 40px;
 }
 .footer {
 text-align: center;
-color: #777;
+color: #666;
 font-size: 14px;
-margin-top: 50px;
+margin-top: 60px;
+}
+.stButton>button {
+background-color: #003DA5;
+color: white;
+font-weight: 600;
+border-radius: 10px;
+padding: 0.7em 2em;
+font-size: 16px;
+transition: all 0.3s ease-in-out;
+}
+.stButton>button:hover {
+background-color: #002E7A;
+transform: scale(1.03);
 }
 </style>
 """, unsafe_allow_html=True)
 
 ===== HEADER =====
 
-st.image(
-"https://www.tuni.fi/themes/custom/tuni/logo.svg
-",
-width=200
-)
-
-st.markdown('<p class="main-title">🎓 Student GPA Predictor</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">A Machine Learning App by Nguyễn Ngọc Minh Anh – Tampere University</p>', unsafe_allow_html=True)
+st.image("https://www.tuni.fi/themes/custom/tuni/logo.svg
+", width=200)
+st.markdown('<h1 class="main-title">🎓 Student GPA Predictor</h1>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">A Machine Learning App by <b>Nguyễn Ngọc Minh Anh</b> – Tampere University</p>', unsafe_allow_html=True)
 st.markdown("---")
 
 ===== LOAD DATA =====
@@ -71,7 +81,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 ===== TRAIN MODEL =====
 
-rf = RandomForestRegressor(n_estimators=100, random_state=42)
+rf = RandomForestRegressor(n_estimators=120, random_state=42)
 rf.fit(X_train, y_train)
 y_pred = rf.predict(X_test)
 
@@ -88,7 +98,7 @@ st.metric(label="R² Score", value=f"{r2:.2f}")
 
 ===== USER INPUT =====
 
-st.markdown('<p class="section-header">📋 Enter Student Data</p>', unsafe_allow_html=True)
+st.markdown('<p class="section-title">📋 Enter Student Data</p>', unsafe_allow_html=True)
 selected_features = ["G1", "G2", "studytime", "failures", "absences", "age", "Medu", "Fedu"]
 input_data = {}
 
@@ -101,25 +111,25 @@ else:
 with col2:
 input_data[col] = st.number_input(f"{col}", value=float(X[col].mean()))
 
-Fill missing columns with mean values
+===== Predict Button =====
 
+predict_clicked = st.button("🔘 Predict GPA")
+
+if predict_clicked:
 for col in X.columns:
 if col not in selected_features:
 input_data[col] = float(X[col].mean())
-
 input_df = pd.DataFrame([input_data])
 prediction = rf.predict(input_df)[0]
 gpa_4scale = (prediction / 20) * 4
-
 st.success(f"🎯 Predicted Final Grade: {prediction:.2f}/20 (≈ {gpa_4scale:.2f}/4.0 GPA)")
 
-===== FEATURE IMPORTANCE =====
-
-st.markdown('<p class="section-header">📈 Feature Importance</p>', unsafe_allow_html=True)
+# ===== Feature Importance =====
+st.markdown('<p class="section-title">📈 Feature Importance</p>', unsafe_allow_html=True)
 importances = rf.feature_importances_
 indices = np.argsort(importances)[::-1]
 
-fig, ax = plt.subplots(figsize=(10,5))
+fig, ax = plt.subplots(figsize=(10, 5))
 ax.bar(range(len(indices)), importances[indices], color="#003DA5", alpha=0.8)
 ax.set_xticks(range(len(indices)))
 ax.set_xticklabels(X.columns[indices], rotation=90)
