@@ -10,16 +10,21 @@ from sklearn.metrics import mean_squared_error, r2_score
 # ===== Streamlit Page Config =====
 st.set_page_config(page_title="Student GPA Prediction", layout="wide", page_icon="🎓")
 
-# ===== Header with Logo =====
+# ===== Header with Logo and Author Info =====
 st.markdown(
     """
     <div style="display:flex; align-items:center;">
         <img src="https://upload.wikimedia.org/wikipedia/en/8/82/Tampere_University_logo.svg" width="120">
-        <h1 style="margin-left:20px;">Student GPA Prediction App</h1>
+        <div style="margin-left:20px;">
+            <h1>Student GPA Prediction App 🎓</h1>
+            <p style="margin:0; font-size:14px;">
+                Author: Nguyễn Ngọc Minh Anh | Tampere University | Major: Machine Learning
+            </p>
+        </div>
     </div>
     """, unsafe_allow_html=True
 )
-st.markdown("Predict the final grade (G3) of students using **Random Forest Regressor**.")
+st.markdown("---")
 
 # ===== Load CSV =====
 @st.cache_data
@@ -71,8 +76,10 @@ st.subheader("Prediction")
 if st.button("Predict GPA"):
     prediction = rf.predict(input_df)[0]
     st.success(f"🎯 Predicted GPA (G3): {prediction:.2f}")
-    st.metric("RMSE", f"{rmse:.2f}")
-    st.metric("R² Score", f"{r2:.2f}")
+    
+    col1, col2 = st.columns(2)
+    col1.metric("RMSE", f"{rmse:.2f}")
+    col2.metric("R² Score", f"{r2:.2f}")
 
 # ===== Feature Importance =====
 st.subheader("Feature Importance")
